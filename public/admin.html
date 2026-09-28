@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="om">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOPTIK - Admin Dashboard</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #121212; color: #fff; padding: 20px; }
+    h1, h2 { color: #fe2c55; margin-bottom: 15px; }
+    .container { max-width: 900px; margin: auto; }
+    .card { background: #1e1e1e; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; font-size: 14px; }
+    th { background-color: #2a2a2a; color: #fe2c55; }
+    .btn-approve { background: #2ec4b6; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    .btn-reject { background: #fe2c55; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    .status-pending { color: #ff9f1c; font-weight: bold; }
+    .status-approved { color: #2ec4b6; font-weight: bold; }
+    .status-rejected { color: #fe2c55; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>👑 TOPTIK Admin Dashboard</h1>
+    
+    <div class="card">
+      <h2>📊 Statiseetii Waliigalaa</h2>
+      <div style="display: flex; gap: 20px; font-size: 16px;">
+        <div>Gaaffii Kaffaltii: <strong id="totalRequests">0</strong></div>
+        <div>Waliigala Qarshii Ba'u: <strong id="totalAmount">0 ETB</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💳 Gaaffii Kaffaltii (Withdrawal Requests)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Email Fayyadamaa</th>
+            <th>Miseensa / Method</th>
+            <th>Lakk. Akkaawuntii</th>
+            <th>Hanga (ETB)</th>
+            <th>Haala (Status)</th>
+            <th>Tarkaanfii</th>
+          </tr>
+        </thead>
+        <tbody id="withdrawalTable">
+          <tr>
+            <td colspan="6" style="text-align:center;">Data-n fe'amaa jira...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsuHZm_b3GhaNnkC-FmcAnOSEXNKnEbUs",
+      authDomain: "toptik-47f84.firebaseapp.com",
+      databaseURL: "https://toptik-47f84-default-rtdb.firebaseio.com",
+      projectId: "toptik-47f84",
+      storageBucket: "toptik-47f84.firebasestorage.app",
+      messagingSenderId: "1001201702065",
+      appId: "1:1001201702065:web:164a3ac396d631aa957e90",
+      measurementId: "G-2TFYT9QPVH"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function loadWithdrawals() {
+      db.collection('withdrawals').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+        const tableBody = document.getElementById('withdrawalTable');
+        tableBody.innerHTML = '';
+
+        let totalReq = 0;
+        let totalAmt = 0;
+
+        if (snapshot.empty) {
+          tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Gaaffiin kaffaltii homaayyuu hin jiru.</td></tr>';
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const req = doc.data();
+          const id = doc.id;
+          totalReq++;
+          if (req.status === 'Approved') totalAmt += req.amount;
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${req.email || 'N/A'}</td>
+            <td><strong>${req.method.toUpperCase()}</strong></td>
+            <td>${req.accountNum}</td>
+            <td><strong>${req.amount} ETB</strong></td>
+            <td><span class="status-${req.status.toLowerCase()}">${req.status}</span></td>
+            <td>
+              ${req.status === 'Pending' ? `
+                <button class="btn-approve" onclick="updateStatus('${id}', 'Approved')">Approve</button>
+                <button class="btn-reject" onclick="updateStatus('${id}', 'Rejected')">Reject</button>
+              ` : 'Done'}
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        document.getElementById('totalRequests').innerText = totalReq;
+        document.getElementById('totalAmount').innerText = totalAmt + ' ETB';
+      });
+    }
+
+    function updateStatus(docId, newStatus) {
+      if (confirm(`Haala gaaffii kanaa gara ${newStatus}-tti jijjiiruu ni feetaa?`)) {
+        db.collection('withdrawals').doc(docId).update({
+          status: newStatus
+        }).then(() => {
+          alert(`Gaaffiin kaffaltii ${newStatus} ta'era!`);
+        });
+      }
+    }
+
+    loadWithdrawals();
+  </script>
+</body>
+</html>

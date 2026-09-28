@@ -1,0 +1,15 @@
+{
+  "short_name": "TOPTIK",
+  "name": "TOPTIK Short Video Platform",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3046/3046124.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/index.html",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "display": "standalone"
+}
