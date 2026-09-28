@@ -20,7 +20,7 @@ async function uploadVideoToCloudinary(file) {
       alert("2. Vidiyoon Cloudinary irratti fe'ameera!");
       return data.secure_url;
     } else {
-      alert("Error Cloudinary: " + (data.error ? data.error.message : "Upload failed (HTTP " + response.status + ")"));
+      alert("Error Cloudinary: " + (data.error ? data.error.message : "Upload failed"));
       return null;
     }
   } catch (err) {
@@ -60,9 +60,5 @@ async function handlePost() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const postBtn = document.querySelector('button');
-  if (postBtn) {
-    postBtn.onclick = handlePost;
-  }
-});
+// Function kana global window irratti makuu
+window.handlePost = handlePost;
