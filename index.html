@@ -2,150 +2,381 @@
 <html lang="om">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOPTIK - AI Video Editor & Upload</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TOPTIK - TikTok Full Experience</title>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: #121212;
-      color: #ffffff;
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html {
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    /* Container for Snap Scrolling Feed */
+    .app-feed {
+      width: 100%;
+      height: calc(100vh - 56px); /* minus bottom nav */
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none; /* Firefox */
+    }
+    .app-feed::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+    /* Individual Video Slide */
+    .video-card {
+      width: 100%;
+      height: 100%;
+      scroll-snap-align: start;
+      position: relative;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Top Overlay Navigation Header */
+    .top-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      padding: 20px;
+      gap: 20px;
+      padding: 16px;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
+      font-weight: 600;
+      font-size: 16px;
     }
-    .upload-card {
-      background: #1e1e1e;
-      border-radius: 16px;
-      padding: 24px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-      border: 1px solid #333;
+    .top-header span { color: #888; cursor: pointer; }
+    .top-header span.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
+
+    /* Right Action Bar Overlay */
+    .action-bar {
+      position: absolute;
+      right: 12px;
+      bottom: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      z-index: 10;
     }
-    h2 {
-      font-size: 22px;
-      margin-bottom: 20px;
-      color: #fe2c55;
-      text-align: center;
-    }
-    .form-group {
-      margin-bottom: 16px;
-    }
-    label {
-      display: block;
-      font-size: 13px;
-      color: #aaa;
-      margin-bottom: 6px;
-    }
-    input[type="file"], input[type="text"], select {
-      width: 100%;
-      padding: 12px;
-      background: #2c2c2c;
-      border: 1px solid #444;
-      border-radius: 8px;
+
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       color: #fff;
-      font-size: 14px;
+      font-size: 26px;
+      cursor: pointer;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
-    .ai-options {
-      background: #252525;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px dashed #fe2c55;
-      margin-bottom: 16px;
+    .action-btn span {
+      font-size: 12px;
+      margin-top: 4px;
+      font-weight: 600;
     }
-    .ai-options h4 {
-      font-size: 14px;
-      color: #fe2c55;
+    .action-btn.liked i { color: #fe2c55; }
+
+    .profile-avatar {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid #fff;
       margin-bottom: 8px;
     }
-    .checkbox-group {
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .follow-badge {
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fe2c55;
+      color: #fff;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 12px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-      font-size: 13px;
+      justify-content: center;
     }
-    button {
-      width: 100%;
-      padding: 14px;
-      background: #fe2c55;
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 16px;
-      font-weight: bold;
+
+    /* Spinning Music Disc */
+    .music-disc {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #222;
+      border: 8px solid #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: spin 4s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Bottom Left Info Overlay */
+    .video-info {
+      position: absolute;
+      left: 14px;
+      bottom: 80px;
+      right: 80px;
+      z-index: 10;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    }
+    .video-info h3 { font-size: 16px; margin-bottom: 6px; font-weight: 700; }
+    .video-info p { font-size: 14px; margin-bottom: 8px; line-height: 1.3; }
+    .video-info .music-track { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: #000;
+      border-top: 1px solid #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 20;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #888;
+      font-size: 18px;
       cursor: pointer;
     }
-    button:disabled {
-      background: #555;
-      cursor: not-allowed;
-    }
-    #status {
-      margin-top: 16px;
-      padding: 12px;
+    .nav-item.active { color: #fff; }
+    .nav-item span { font-size: 10px; margin-top: 3px; }
+
+    .upload-nav-btn {
+      width: 44px;
+      height: 28px;
+      background: linear-gradient(90deg, #00f2fe, #fe2c55);
       border-radius: 8px;
-      font-size: 14px;
-      display: none;
-      word-break: break-word;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-size: 16px;
+      padding: 2px;
     }
-    .info { background: #1a3a5c; color: #85c1e9; }
-    .success { background: #1e4620; color: #82e0aa; }
-    .error { background: #5c1a1a; color: #f1948a; }
+    .upload-nav-btn div {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Comment Modal Bottom Sheet */
+    .modal-sheet {
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      right: 0;
+      height: 65vh;
+      background: #1e1e1e;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      z-index: 100;
+      transition: bottom 0.3s ease-in-out;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-sheet.open { bottom: 0; }
+    .modal-header {
+      padding: 14px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      border-bottom: 1px solid #333;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      right: 16px;
+      top: 14px;
+      cursor: pointer;
+      font-size: 18px;
+      color: #aaa;
+    }
+    .comments-list {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .comment-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+    .comment-item img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+    .comment-input-box {
+      padding: 12px;
+      border-top: 1px solid #333;
+      display: flex;
+      gap: 10px;
+    }
+    .comment-input-box input {
+      flex: 1;
+      background: #2a2a2a;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 20px;
+      color: #fff;
+    }
+    .comment-input-box button {
+      background: #fe2c55;
+      border: none;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    /* Upload AI Modal */
+    .upload-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .upload-modal.open { display: flex; }
+    .upload-form-card {
+      background: #181818;
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: auto;
+      margin-bottom: auto;
+      border: 1px solid #333;
+    }
   </style>
 </head>
 <body>
 
-<div class="upload-card">
-  <h2>✨ TOPTIK AI Video Editor</h2>
-
-  <div class="form-group">
-    <label for="videoFile">Vidiyoo Filadhu:</label>
-    <input type="file" id="videoFile" accept="video/*">
+  <!-- Top Navigation Header -->
+  <div class="top-header">
+    <span>Following</span>
+    <span class="active">For You</span>
   </div>
 
-  <div class="form-group">
-    <label for="videoCaption">Barreeffama (Caption):</label>
-    <input type="text" id="videoCaption" placeholder="Mataduree galchi...">
+  <!-- Main Scrollable Video Feed -->
+  <div class="app-feed" id="videoFeed">
+    <!-- Videos will be populated dynamically from Firestore -->
   </div>
 
-  <!-- AI Editing Tools Options -->
-  <div class="ai-options">
-    <h4>🤖 Filannoowwan AI Video Editing:</h4>
-    
-    <div class="checkbox-group">
-      <input type="checkbox" id="aiCrop" checked>
-      <label for="aiCrop">AI Smart Crop (Bifa TikTok 9:16)</label>
+  <!-- Comment Sheet Drawer Modal -->
+  <div class="modal-sheet" id="commentModal">
+    <div class="modal-header">
+      <span id="commentCountHeader">0 Yaadawwan</span>
+      <i class="fa-solid fa-xmark modal-close" onclick="closeComments()"></i>
     </div>
-
-    <div class="checkbox-group">
-      <input type="checkbox" id="aiOptimize" checked>
-      <label for="aiOptimize">AI Quality & Fast Loading Optimizer</label>
+    <div class="comments-list" id="commentsList">
+      <p style="text-align:center; color:#888; margin-top:20px;">Yaadni kenname hin jiru...</p>
     </div>
-
-    <div class="form-group" style="margin-top: 8px; margin-bottom: 0;">
-      <label for="aiFilter">AI Video Filter Addaa:</label>
-      <select id="aiFilter">
-        <option value="none">Normal (Filter Malee)</option>
-        <option value="e_vignette:30">AI Vignette (Shadow Edges)</option>
-        <option value="e_art:zorro">AI Art Filter</option>
-        <option value="e_grayscale">Black & White</option>
-      </select>
+    <div class="comment-input-box">
+      <input type="text" id="commentText" placeholder="Yaada dhiheessi...">
+      <button onclick="postComment()">Post</button>
     </div>
   </div>
 
-  <button type="button" id="uploadBtn">AI'n Sirreessi & Post Godhi</button>
+  <!-- AI Upload Modal -->
+  <div class="upload-modal" id="uploadModal">
+    <div style="display:flex; justify-shadow:space-between; align-items:center; margin-bottom:20px;">
+      <h2>✨ TOPTIK AI Video Upload</h2>
+      <i class="fa-solid fa-xmark" style="font-size:24px; cursor:pointer;" onclick="closeUploadModal()"></i>
+    </div>
 
-  <div id="status"></div>
-</div>
+    <div class="upload-form-card">
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">Vidiyoo Filadhu:</label>
+        <input type="file" id="videoFile" accept="video/*" style="width:100%; padding:10px; background:#2c2c2c; color:#fff; border-radius:8px;">
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">Caption (Hashtag waliin):</label>
+        <input type="text" id="videoCaption" placeholder="#toptik #viral..." style="width:100%; padding:10px; background:#2c2c2c; color:#fff; border-radius:8px;">
+      </div>
+
+      <div style="background:#222; padding:12px; border-radius:8px; border:1px dashed #fe2c55; margin-bottom:16px;">
+        <p style="color:#fe2c55; font-size:13px; font-weight:bold; margin-bottom:8px;">🤖 AI Video Transformation:</p>
+        <label style="display:block; font-size:12px; margin-bottom:6px;"><input type="checkbox" id="aiCrop" checked> AI Smart Crop (TikTok 9:16)</label>
+        <label style="display:block; font-size:12px; margin-bottom:6px;"><input type="checkbox" id="aiOptimize" checked> Fast Loading Optimization</label>
+      </div>
+
+      <button id="uploadBtn" onclick="handleUpload()" style="width:100%; padding:12px; background:#fe2c55; border:none; color:#fff; border-radius:8px; font-weight:bold; font-size:16px;">AI Upload</button>
+      <div id="uploadStatus" style="margin-top:10px; text-align:center; font-size:13px; color:#fe2c55;"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="nav-item">
+      <i class="fa-solid fa-user-group"></i>
+      <span>Friends</span>
+    </div>
+    <div class="nav-item" onclick="openUploadModal()">
+      <div class="upload-nav-btn">
+        <div><i class="fa-solid fa-plus"></i></div>
+      </div>
+    </div>
+    <div class="nav-item">
+      <i class="fa-solid fa-comment-dots"></i>
+      <span>Inbox</span>
+    </div>
+    <div class="nav-item">
+      <i class="fa-solid fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
 
 <script>
+  // Firebase Configuration
   const firebaseConfig = { projectId: "toptik-47f84" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
@@ -153,99 +384,193 @@
   const CLOUD_NAME = "zkyyos4t";
   const UPLOAD_PRESET = "ml_default";
 
-  const uploadBtn = document.getElementById('uploadBtn');
-  const videoFileInput = document.getElementById('videoFile');
-  const captionInput = document.getElementById('videoCaption');
-  const statusDiv = document.getElementById('status');
+  let currentVideoId = null;
 
-  function showStatus(message, type) {
-    statusDiv.style.display = 'block';
-    statusDiv.className = type;
-    statusDiv.innerText = message;
+  // Fetch and Load Videos from Firestore
+  async function loadVideos() {
+    const feed = document.getElementById('videoFeed');
+    feed.innerHTML = '';
+
+    try {
+      const snapshot = await db.collection("videos").orderBy("createdAt", "desc").get();
+      if (snapshot.empty) {
+        feed.innerHTML = '<div style="text-align:center; padding-top:40vh; color:#888;">Vidiyoon maxxanfame hin jiru. "+" tuquun fe\'i!</div>';
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const id = doc.id;
+
+        const card = document.createElement('div');
+        card.className = 'video-card';
+        card.innerHTML = `
+          <video src="${data.videoUrl}" loop onclick="togglePlay(this)"></video>
+
+          <div class="action-bar">
+            <div class="profile-avatar">
+              <img src="https://picsum.photos/100" alt="avatar">
+              <div class="follow-badge"><i class="fa-solid fa-plus"></i></div>
+            </div>
+
+            <div class="action-btn" onclick="likeVideo('${id}', this)">
+              <i class="fa-solid fa-heart"></i>
+              <span>${data.likes || 0}</span>
+            </div>
+
+            <div class="action-btn" onclick="openComments('${id}')">
+              <i class="fa-solid fa-comment-dots"></i>
+              <span>Comments</span>
+            </div>
+
+            <div class="action-btn">
+              <i class="fa-solid fa-bookmark"></i>
+              <span>Save</span>
+            </div>
+
+            <div class="action-btn">
+              <i class="fa-solid fa-share"></i>
+              <span>Share</span>
+            </div>
+
+            <div class="music-disc">
+              <i class="fa-solid fa-music" style="font-size:14px; color:#fff;"></i>
+            </div>
+          </div>
+
+          <div class="video-info">
+            <h3>@toptik_user</h3>
+            <p>${data.caption || 'TOPTIK AI Video #toptik #viral'}</p>
+            <div class="music-track">
+              <i class="fa-solid fa-music"></i>
+              <marquee scrollamount="4">🎵 Original Sound - TOPTIK Music</marquee>
+            </div>
+          </div>
+        `;
+        feed.appendChild(card);
+      });
+
+      // Auto play first video
+      const firstVid = feed.querySelector('video');
+      if (firstVid) firstVid.play();
+
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  // AI Transformation URL generator
-  function applyAITransformations(originalUrl) {
-    const aiCrop = document.getElementById('aiCrop').checked;
-    const aiOptimize = document.getElementById('aiOptimize').checked;
-    const aiFilter = document.getElementById('aiFilter').value;
-
-    let transformations = [];
-
-    if (aiCrop) {
-      // AI Object/Face Detection Smart Crop (9:16 Vertical)
-      transformations.push("c_fill,g_auto,w_720,h_1280");
+  function togglePlay(vid) {
+    if (vid.paused) {
+      vid.play();
+    } else {
+      vid.pause();
     }
-    if (aiOptimize) {
-      // Auto Format & Fast Quality Optimization
-      transformations.push("f_auto,q_auto");
-    }
-    if (aiFilter !== "none") {
-      transformations.push(aiFilter);
-    }
+  }
 
-    if (transformations.length === 0) return originalUrl;
+  // Like video function
+  async function likeVideo(id, btn) {
+    const icon = btn.querySelector('i');
+    const span = btn.querySelector('span');
+    let currentLikes = parseInt(span.innerText) || 0;
 
-    const transformString = transformations.join(",");
-    // URL Cloudinary keessa galchuu (/upload/ AFTER)
-    return originalUrl.replace("/upload/", `/upload/${transformString}/`);
+    btn.classList.toggle('liked');
+    if (btn.classList.contains('liked')) {
+      currentLikes += 1;
+      await db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) });
+    } else {
+      currentLikes = Math.max(0, currentLikes - 1);
+      await db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(-1) });
+    }
+    span.innerText = currentLikes;
+  }
+
+  // Comments System
+  function openComments(id) {
+    currentVideoId = id;
+    document.getElementById('commentModal').classList.add('open');
+  }
+
+  function closeComments() {
+    document.getElementById('commentModal').classList.remove('open');
+  }
+
+  function postComment() {
+    const txt = document.getElementById('commentText').value.trim();
+    if (!txt) return;
+
+    const list = document.getElementById('commentsList');
+    if (list.innerHTML.includes('Yaadni kenname hin jiru')) list.innerHTML = '';
+
+    const item = document.createElement('div');
+    item.className = 'comment-item';
+    item.innerHTML = `
+      <img src="https://picsum.photos/50" alt="user">
+      <div>
+        <strong style="color:#aaa; display:block;">@anonymous</strong>
+        <p>${txt}</p>
+      </div>
+    `;
+    list.appendChild(item);
+    document.getElementById('commentText').value = '';
+  }
+
+  // AI Video Upload Modals
+  function openUploadModal() {
+    document.getElementById('uploadModal').classList.add('open');
+  }
+
+  function closeUploadModal() {
+    document.getElementById('uploadModal').classList.remove('open');
   }
 
   async function handleUpload() {
-    const file = videoFileInput.files[0];
-    const caption = captionInput.value.trim();
+    const file = document.getElementById('videoFile').files[0];
+    const caption = document.getElementById('videoCaption').value;
+    const status = document.getElementById('uploadStatus');
 
     if (!file) {
-      showStatus("Mee dursa vidiyoo filadhu!", "error");
+      status.innerText = "Mee vidiyoo filadhu!";
       return;
     }
 
-    uploadBtn.disabled = true;
-    showStatus("⏳ 1/2 Vidiyoon Cloudinary'tti fe'amaa jira...", "info");
+    status.innerText = "⏳ Fe'amaa jira...";
 
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", UPLOAD_PRESET);
 
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
         method: "POST",
         body: formData
       });
+      const data = await res.json();
 
-      const data = await response.json();
-
-      if (!response.ok || !data.secure_url) {
-        throw new Error(data.error ? data.error.message : "Upload failed");
+      let videoUrl = data.secure_url;
+      if (document.getElementById('aiCrop').checked) {
+        videoUrl = videoUrl.replace("/upload/", "/upload/c_fill,g_auto,w_720,h_1280,f_auto,q_auto/");
       }
 
-      showStatus("🤖 2/2 AI'n vidiyoo gulaalaa fi Database irratti save gochaa jira...", "info");
-
-      // Apply AI Video Editing transformations to URL
-      const aiEditedVideoUrl = applyAITransformations(data.secure_url);
-
       await db.collection("videos").add({
-        videoUrl: aiEditedVideoUrl,
-        rawUrl: data.secure_url,
+        videoUrl: videoUrl,
         caption: caption,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         likes: 0
       });
 
-      showStatus("🎉 Milkaa'ina: Vidiyoon AI'n gulaalamee post ta'eera!", "success");
-      
-      videoFileInput.value = "";
-      captionInput.value = "";
+      status.innerText = "🎉 Milkaa'inaan maxxanfameera!";
+      setTimeout(() => {
+        closeUploadModal();
+        loadVideos();
+      }, 1000);
 
-    } catch (err) {
-      console.error(err);
-      showStatus("❌ Error: " + err.message, "error");
-    } finally {
-      uploadBtn.disabled = false;
+    } catch (e) {
+      status.innerText = "❌ Dogoggora: " + e.message;
     }
   }
 
-  uploadBtn.addEventListener('click', handleUpload);
+  // Initialize
+  loadVideos();
 </script>
 
 </body>
