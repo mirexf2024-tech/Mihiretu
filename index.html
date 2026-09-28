@@ -3,453 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOPTIK</title>
-  
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
-
+  <title>TOPTIK - Vidiyoo Fe'i</title>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
-    body { background-color: #000; color: #fff; height: 100vh; overflow: hidden; width: 100vw; }
-
-    .top-header { position: fixed; top: 0; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; z-index: 100; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%); }
-    .live-btn { display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: bold; border: 1.5px solid #fff; padding: 2px 6px; border-radius: 6px; }
-    .header-tabs { display: flex; gap: 14px; font-size: 16px; font-weight: 600; }
-    .tab-item { color: rgba(255, 255, 255, 0.5); cursor: pointer; position: relative; }
-    .tab-item.active { color: #fff; font-weight: 700; }
-    .tab-item.active::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 22px; height: 3px; background: #fff; border-radius: 2px; }
-
-    .app-viewport { height: calc(100vh - 55px); width: 100%; }
-    .section { display: none; height: 100%; width: 100%; overflow-y: auto; }
-    .active-section { display: block; }
-
-    /* Video Feed Scroll Setup */
-    #feed { overflow-y: scroll; scroll-snap-type: y mandatory; height: calc(100vh - 55px); background: #000; }
-    .video-card { height: calc(100vh - 55px); width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
-    .video-card video { width: 100%; height: 100%; object-fit: cover; }
-
-    /* Video Overlay Info */
-    .video-overlay { position: absolute; bottom: 20px; left: 15px; right: 80px; z-index: 10; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
-    .video-caption { font-size: 14px; margin-top: 5px; color: #eee; }
-
-    /* Right Action Buttons */
-    .right-actions { position: absolute; right: 12px; bottom: 30px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
-    .action-icon { display: flex; flex-direction: column; align-items: center; font-size: 26px; cursor: pointer; }
-    .action-text { font-size: 11px; margin-top: 3px; font-weight: bold; }
-
-    /* Gift Popup Modal */
-    .gift-modal { display: none; position: fixed; bottom: 55px; left: 0; width: 100%; background: rgba(20, 20, 20, 0.95); border-radius: 16px 16px 0 0; padding: 20px; z-index: 200; border-top: 1px solid #333; }
-    .gift-grid { display: flex; gap: 15px; justify-content: space-around; margin-top: 15px; }
-    .gift-item { background: #2a2a2a; border-radius: 10px; padding: 15px; text-align: center; width: 45%; cursor: pointer; border: 1px solid #444; }
-
-    .card { background: #1a1a1a; padding: 20px; margin: 15px auto; border-radius: 12px; max-width: 400px; }
-    input, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; font-size: 15px; }
-    input, select { background: #2a2a2a; color: #fff; }
-    .btn-primary { background: #fe2c55; color: #fff; font-weight: bold; cursor: pointer; }
-
-    .profile-content { text-align: center; padding: 10px 20px; }
-    .profile-avatar-box { width: 96px; height: 96px; border-radius: 50%; background: #555; margin: auto; display: flex; align-items: center; justify-content: center; font-size: 45px; border: 2px solid #333; }
-    .stats-row { display: flex; justify-content: center; align-items: center; gap: 20px; margin: 20px 0; }
-    .stat-num { font-size: 18px; font-weight: 800; display: block; }
-    .stat-label { font-size: 13px; color: #888; }
-
-    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 55px; background: #000; border-top: 1px solid #1a1a1a; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
-    .nav-btn { background: none; border: none; color: #a6a6a6; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; width: 20%; }
-    .nav-btn.active { color: #fff; font-weight: bold; }
-    .tiktok-plus { width: 45px; height: 28px; background: #fff; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; margin: auto; }
-    .tiktok-plus::before { content: ''; position: absolute; left: -3px; width: 20px; height: 100%; background: #20d5ec; border-radius: 8px 0 0 8px; z-index: -1; }
-    .tiktok-plus::after { content: ''; position: absolute; right: -3px; width: 20px; height: 100%; background: #fe2c55; border-radius: 0 8px 8px 0; z-index: -1; }
-    .tiktok-plus span { color: #000; font-size: 20px; font-weight: bold; }
-
-    .progress-bar { background: #333; border-radius: 10px; height: 10px; width: 100%; margin: 8px 0; overflow: hidden; }
-    .progress-fill { background: #fe2c55; height: 100%; width: 0%; transition: width 0.3s; }
+    body { font-family: sans-serif; background: #121212; color: white; padding: 20px; text-align: center; }
+    .card { background: #1e1e1e; padding: 20px; border-radius: 12px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    input, button { width: 100%; padding: 14px; margin: 10px 0; border-radius: 8px; border: none; box-sizing: border-box; font-size: 15px; }
+    input[type="file"] { background: #2a2a2a; color: #ccc; }
+    input[type="text"] { background: #2a2a2a; color: white; }
+    button { background: #fe2c55; color: white; font-weight: bold; cursor: pointer; }
+    button:active { background: #e02447; }
   </style>
 </head>
 <body>
 
-  <div id="top-header" class="top-header">
-    <div class="live-btn">📺<br>LIVE</div>
-    <div class="header-tabs">
-      <span class="tab-item">Community</span>
-      <span class="tab-item">Following</span>
-      <span class="tab-item active">For You</span>
-    </div>
-    <div style="font-size:20px;">🔍</div>
-  </div>
-
-  <div class="app-viewport">
-    
-    <!-- FEED SECTION -->
-    <div id="feed" class="section active-section">
-      <div id="videoContainer">
-        <div style="padding-top: 150px; text-align: center; color: #888;">
-          <p>Vidiyoowwan fe'amaa jiru...</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- UPLOAD SECTION -->
-    <div id="upload" class="section">
-      <div style="padding-top: 70px;">
-        <div class="card">
-          <h2>Vidiyoo Fe'i (Upload)</h2>
-          <input type="file" id="videoFileInput" accept="video/*">
-          <input type="text" id="videoCaption" placeholder="Mata duree / Description...">
-          <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- INBOX / EARN SECTION -->
-    <div id="inbox" class="section">
-      <div style="padding-top: 70px;">
-        
-        <div id="lockedEarnCard" class="card" style="text-align: center;">
-          <div style="font-size: 50px;">🔒</div>
-          <h2 style="margin: 10px 0;">Monetization Cufamaadha</h2>
-          <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Qarshii baafachuuf ulaagaalee armaan gadii guutuu qabda:</p>
-          
-          <div style="text-align: left; font-size: 13px; margin-bottom: 10px;">
-            <div style="display:flex; justify-content: space-between;">
-              <span>Followers (1,000)</span>
-              <span id="followersProgressText">0 / 1000</span>
-            </div>
-            <div class="progress-bar"><div id="followersFill" class="progress-fill"></div></div>
-          </div>
-
-          <div style="text-align: left; font-size: 13px; margin-bottom: 15px;">
-            <div style="display:flex; justify-content: space-between;">
-              <span>Total Views (10,000)</span>
-              <span id="viewsProgressText">0 / 10,000</span>
-            </div>
-            <div class="progress-bar"><div id="viewsFill" class="progress-fill"></div></div>
-          </div>
-
-          <p style="color:#888; font-size:12px;">Ulaagaa erga guuttee booda otomaatikiidhaan siif banama!</p>
-        </div>
-
-        <div id="unlockedEarnCard" class="card" style="display: none;">
-          <h2>💰 Monetization Dashboard</h2>
-          <p style="color:#4caf50; font-size:14px; margin:10px 0; font-weight: bold;">Baga gamammaddan! Akkaawuntiin keessan kaffaltii fudhachuuf qophiidha.</p>
-          <select id="paymentMethod">
-            <option value="telebirr">Telebirr</option>
-            <option value="cbe">CBE Birr</option>
-          </select>
-          <input type="text" id="accountNumber" placeholder="Lakk. Bilbilaa / Akkaawuntii">
-          <input type="number" id="withdrawAmount" placeholder="Hangam (ETB - Min 1000)">
-          <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- PROFILE SECTION -->
-    <div id="profile" class="section">
-      <div id="authBox" style="padding-top: 80px;">
-        <div class="card">
-          <h2>Sign In / Register</h2>
-          <input type="email" id="email" placeholder="Email...">
-          <input type="password" id="password" placeholder="Password...">
-          <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-        </div>
-      </div>
-
-      <div class="profile-content" id="profileBox" style="display:none; padding-top: 60px;">
-        <div class="profile-avatar-box">👤</div>
-        <h3 id="userDisplayName" style="margin-top:10px;">User</h3>
-        <p id="userEmail" style="color:#aaa; font-size:13px;"></p>
-
-        <div class="stats-row">
-          <div><span class="stat-num" id="followingCount">0</span><span class="stat-label">Following</span></div>
-          <div><span class="stat-num" id="followersCount">0</span><span class="stat-label">Followers</span></div>
-          <div><span class="stat-num" id="userCoins">0 🟡</span><span class="stat-label">Coins</span></div>
-        </div>
-
-        <div class="card" style="margin-bottom: 20px;">
-          <h3>🟡 Coins Bitadhu</h3>
-          <p style="color:#aaa; font-size:12px; margin-bottom:10px;">Coins bitachuun creator'ootaaf gift ergi!</p>
-          <div style="display:flex; gap:10px;">
-            <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-            <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-          </div>
-        </div>
-
-        <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- GIFT MODAL POPUP -->
-  <div id="giftModal" class="gift-modal">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3>🎁 Gift Ergi</h3>
-      <span style="font-size:20px; cursor:pointer;" onclick="closeGiftModal()">✕</span>
-    </div>
-    <div class="gift-grid">
-      <div class="gift-item" onclick="sendGift('Rose', 5)">
-        <div style="font-size:30px;">🌹</div>
-        <div style="font-weight:bold; font-size:13px;">Rose</div>
-        <div style="color:gold; font-size:12px;">5 Coins</div>
-      </div>
-      <div class="gift-item" onclick="sendGift('Diamond', 50)">
-        <div style="font-size:30px;">💎</div>
-        <div style="font-weight:bold; font-size:13px;">Diamond</div>
-        <div style="color:gold; font-size:12px;">50 Coins</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BOTTOM NAVIGATION -->
-  <div class="bottom-nav">
-    <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-      <span style="font-size:20px;">🏠</span>
-      <span>Home</span>
-    </button>
-    <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-      <div class="tiktok-plus"><span>+</span></div>
-    </button>
-    <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-      <span style="font-size:20px;">💰</span>
-      <span>Earn</span>
-    </button>
-    <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
-      <span style="font-size:20px;">👤</span>
-      <span>Profile</span>
-    </button>
+  <div class="card">
+    <h2>Vidiyoo Fe'i (TOPTIK)</h2>
+    <input type="file" id="videoFile" accept="video/*">
+    <input type="text" id="videoCaption" placeholder="Barreeffama (Caption) galchi...">
+    <button type="button" onclick="handlePost()">Post Video</button>
   </div>
 
   <script>
+    // Firebase Config
     const firebaseConfig = {
-      apiKey: "AIzaSyCsuHZm_b3GhaNnkC-FmcAnOSEXNKnEbUs",
-      authDomain: "toptik-47f84.firebaseapp.com",
-      databaseURL: "https://toptik-47f84-default-rtdb.firebaseio.com",
-      projectId: "toptik-47f84",
-      storageBucket: "toptik-47f84.firebasestorage.app",
-      messagingSenderId: "1001201702065",
-      appId: "1:1001201702065:web:164a3ac396d631aa957e90",
-      measurementId: "G-2TFYT9QPVH"
+      projectId: "toptik-47f84"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
-    const storage = firebase.storage();
 
-    let currentUserCoins = 0;
-    let selectedVideoCreatorUid = null;
+    async function handlePost() {
+      alert("1. Button cuqaasameera!");
 
-    function nav(sectionId, btn) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active-section'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(sectionId).classList.add('active-section');
-      btn.classList.add('active');
+      const fileInput = document.getElementById('videoFile');
+      const captionInput = document.getElementById('videoCaption');
 
-      const header = document.getElementById('top-header');
-      if (sectionId === 'feed') {
-        header.style.display = 'flex';
-      } else {
-        header.style.display = 'none';
-        closeGiftModal();
+      if (!fileInput || !fileInput.files[0]) {
+        alert("Mee dursa vidiyoo filadhu!");
+        return;
       }
-    }
 
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById('authBox').style.display = 'none';
-        document.getElementById('profileBox').style.display = 'block';
-        document.getElementById('userEmail').innerText = user.email;
-        document.getElementById('userDisplayName').innerText = user.email.split('@')[0];
-        
-        loadUserData(user.uid);
-      } else {
-        document.getElementById('authBox').style.display = 'block';
-        document.getElementById('profileBox').style.display = 'none';
-      }
-    });
+      const file = fileInput.files[0];
+      const caption = captionInput ? captionInput.value : "";
 
-    function loadUserData(uid) {
-      db.collection('users').doc(uid).onSnapshot(doc => {
-        let followers = 0;
-        let views = 0;
-        let coins = 0;
+      alert("2. Vidiyoon Cloudinary'tti fe'amaa jira, mee eegi...");
 
-        if (doc.exists) {
-          followers = doc.data().followers || 0;
-          views = doc.data().views || 0;
-          coins = doc.data().coins || 0;
-        }
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "ml_default");
 
-        currentUserCoins = coins;
-        document.getElementById('userCoins').innerText = `${coins} 🟡`;
-        document.getElementById('followersProgressText').innerText = `${followers} / 1000`;
-        document.getElementById('viewsProgressText').innerText = `${views} / 10000`;
-        
-        document.getElementById('followersFill').style.width = Math.min((followers / 1000) * 100, 100) + '%';
-        document.getElementById('viewsFill').style.width = Math.min((views / 10000) * 100, 100) + '%';
-
-        if (followers >= 1000 && views >= 10000) {
-          document.getElementById('lockedEarnCard').style.display = 'none';
-          document.getElementById('unlockedEarnCard').style.display = 'block';
-        } else {
-          document.getElementById('lockedEarnCard').style.display = 'block';
-          document.getElementById('unlockedEarnCard').style.display = 'none';
-        }
-      });
-    }
-
-    // Load Videos into Feed
-    function loadFeedVideos() {
-      db.collection('videos').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-        const container = document.getElementById('videoContainer');
-        if (snapshot.empty) {
-          container.innerHTML = '<div style="padding-top:150px; text-align:center; color:#888;"><p>Vidiyoon homaa hin jiru. Dura fe\'i!</p></div>';
-          return;
-        }
-
-        container.innerHTML = '';
-        snapshot.forEach(doc => {
-          const video = doc.data();
-          const card = document.createElement('div');
-          card.className = 'video-card';
-          card.innerHTML = `
-            <video src="${video.url}" loop onclick="this.paused ? this.play() : this.pause()"></video>
-            <div class="video-overlay">
-              <h4 style="color:#fff;">@user_${video.uid ? video.uid.substring(0,5) : 'creator'}</h4>
-              <p class="video-caption">${video.caption || ''}</p>
-            </div>
-            <div class="right-actions">
-              <div class="action-icon">❤️<span class="action-text">Like</span></div>
-              <div class="action-icon" onclick="openGiftModal('${video.uid}')">🎁<span class="action-text">Gift</span></div>
-            </div>
-          `;
-          container.appendChild(card);
+        const response = await fetch("https://api.cloudinary.com/v1_1/zkyyos4t/video/upload", {
+          method: "POST",
+          body: formData
         });
-      });
-    }
 
-    loadFeedVideos();
+        const data = await response.json();
 
-    function openGiftModal(creatorUid) {
-      selectedVideoCreatorUid = creatorUid;
-      document.getElementById('giftModal').style.display = 'block';
-    }
+        if (response.ok && data.secure_url) {
+          alert("3. Vidiyoon Cloudinary irratti fe'ameera! Database irratti save gochaa jira...");
 
-    function closeGiftModal() {
-      document.getElementById('giftModal').style.display = 'none';
-    }
-
-    function sendGift(giftName, cost) {
-      const user = auth.currentUser;
-      if (!user) return alert('Dura Login godhuu qabda!');
-
-      if (currentUserCoins < cost) {
-        return alert(`Coins gahaa hin qabdu! Gifts ${giftName} erguuf ${cost} Coins barbaachisa.`);
-      }
-
-      // 1. Coin ergituu irraa hir'isuu
-      db.collection('users').doc(user.uid).set({
-        coins: currentUserCoins - cost
-      }, { merge: true }).then(() => {
-        
-        // 2. Coin nama vidiyoo sana hojjeteef dabaluu
-        if (selectedVideoCreatorUid) {
-          const creatorRef = db.collection('users').doc(selectedVideoCreatorUid);
-          creatorRef.get().then(doc => {
-            let currentCreatorCoins = 0;
-            if (doc.exists) {
-              currentCreatorCoins = doc.data().coins || 0;
-            }
-            creatorRef.set({ coins: currentCreatorCoins + cost }, { merge: true });
-          });
-        }
-
-        alert(`🎁 ${giftName} milkaa'inaan ergameera!`);
-        closeGiftModal();
-      });
-    }
-
-    function buyCoins(amount) {
-      const user = auth.currentUser;
-      if (!user) return alert('Dura Login godhuu qabda!');
-
-      db.collection('users').doc(user.uid).set({
-        coins: currentUserCoins + amount
-      }, { merge: true }).then(() => {
-        alert(`${amount} Coins milkaa'inaan bitatteerta!`);
-      });
-    }
-
-    function loginUser() {
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-      if (!email || !pass) return alert('Email fi Password galchi!');
-      auth.signInWithEmailAndPassword(email, pass).catch(() => {
-        auth.createUserWithEmailAndPassword(email, pass).catch(e => alert(e.message));
-      });
-    }
-
-    function logoutUser() {
-      auth.signOut();
-    }
-
-    function uploadVideo() {
-      const file = document.getElementById('videoFileInput').files[0];
-      const caption = document.getElementById('videoCaption').value;
-      if (!file) return alert('Vidiyoo filadhu!');
-
-      const user = auth.currentUser;
-      if (!user) return alert('Dura Profile deemuun Login godhuu qabda!');
-
-      const storageRef = storage.ref('videos/' + Date.now() + '_' + file.name);
-      storageRef.put(file).then(snapshot => {
-        snapshot.ref.getDownloadURL().then(url => {
-          db.collection('videos').add({
-            url: url,
+          await db.collection("videos").add({
+            videoUrl: data.secure_url,
             caption: caption,
-            uid: user.uid,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          }).then(() => {
-            alert('Vidiyoon milkaa\'inaan fe\'ameera!');
-            nav('feed', document.querySelectorAll('.nav-btn')[0]);
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            likes: 0
           });
-        });
-      });
-    }
 
-    function requestPayment() {
-      const user = auth.currentUser;
-      if (!user) return alert('Dura Profile deemuun Login godhuu qabda!');
-
-      const amount = document.getElementById('withdrawAmount').value;
-      const method = document.getElementById('paymentMethod').value;
-      const accountNum = document.getElementById('accountNumber').value;
-
-      if (!accountNum || !amount) {
-        return alert('Maaloo odeeffannoo guutuu galchaa!');
+          alert("Milkaa'ina: Vidiyoon kee post ta'eera!");
+          location.reload();
+        } else {
+          alert("Error Cloudinary: " + (data.error ? data.error.message : JSON.stringify(data)));
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
       }
-
-      if (amount < 1000) {
-        return alert('Hangam qarshii baastuu minimum 1000 ETB ta\'uu qaba!');
-      }
-
-      db.collection('withdrawals').add({
-        uid: user.uid,
-        email: user.email,
-        amount: Number(amount),
-        method: method,
-        accountNum: accountNum,
-        status: 'Pending',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        alert('Gaaffiin kaffaltii ergameera! Admin erga mirkaneessee booda siif erga.');
-        document.getElementById('withdrawAmount').value = '';
-        document.getElementById('accountNumber').value = '';
-      }).catch(err => {
-        alert('Dogoggora: ' + err.message);
-      });
     }
   </script>
 </body>
