@@ -97,7 +97,7 @@
           <h2>Vidiyoo Fe'i (Upload)</h2>
           <input type="file" id="videoFileInput" accept="video/*">
           <input type="text" id="videoCaption" placeholder="Mata duree / Description...">
-          <button onclick="handlePost()" type="button" class="btn-primary" onclick="uploadVideo()">Post Video</button>
+          <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
         </div>
       </div>
     </div>
@@ -139,7 +139,7 @@
           </select>
           <input type="text" id="accountNumber" placeholder="Lakk. Bilbilaa / Akkaawuntii">
           <input type="number" id="withdrawAmount" placeholder="Hangam (ETB - Min 1000)">
-          <button onclick="handlePost()" type="button" class="btn-primary" style="background:#2ec4b6;" onclick="requestPayment()">Request Payment</button>
+          <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
         </div>
 
       </div>
@@ -152,7 +152,7 @@
           <h2>Sign In / Register</h2>
           <input type="email" id="email" placeholder="Email...">
           <input type="password" id="password" placeholder="Password...">
-          <button onclick="handlePost()" type="button" class="btn-primary" onclick="loginUser()">Login / Register</button>
+          <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
         </div>
       </div>
 
@@ -171,12 +171,12 @@
           <h3>🟡 Coins Bitadhu</h3>
           <p style="color:#aaa; font-size:12px; margin-bottom:10px;">Coins bitachuun creator'ootaaf gift ergi!</p>
           <div style="display:flex; gap:10px;">
-            <button onclick="handlePost()" type="button" class="btn-primary" style="background:#ff9f1c; font-size:12px;" onclick="buyCoins(50)">50 Coins (10 ETB)</button>
-            <button onclick="handlePost()" type="button" class="btn-primary" style="background:#ff9f1c; font-size:12px;" onclick="buyCoins(100)">100 Coins (20 ETB)</button>
+            <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
+            <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
           </div>
         </div>
 
-        <button onclick="handlePost()" type="button" class="btn-primary" style="background:#333; max-width:200px;" onclick="logoutUser()">Log Out</button>
+        <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
       </div>
     </div>
 
@@ -204,18 +204,18 @@
 
   <!-- BOTTOM NAVIGATION -->
   <div class="bottom-nav">
-    <button onclick="handlePost()" type="button" class="nav-btn active" onclick="nav('feed', this)">
+    <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
       <span style="font-size:20px;">🏠</span>
       <span>Home</span>
     </button>
-    <button onclick="handlePost()" type="button" class="nav-btn" onclick="nav('upload', this)">
+    <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
       <div class="tiktok-plus"><span>+</span></div>
     </button>
-    <button onclick="handlePost()" type="button" class="nav-btn" onclick="nav('inbox', this)">
+    <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
       <span style="font-size:20px;">💰</span>
       <span>Earn</span>
     </button>
-    <button onclick="handlePost()" type="button" class="nav-btn" onclick="nav('profile', this)">
+    <button type="button" id="postBtn" onclick="handlePost(event)" style="position:relative; z-index:9999; cursor:pointer;">Post Video</button>
       <span style="font-size:20px;">👤</span>
       <span>Profile</span>
     </button>
