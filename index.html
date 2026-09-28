@@ -3,102 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOPTIK - TikTok Ethiopia (Telebirr & CBE Monetization)</title>
+  <title>TOPTIK - TikTok Ethiopia</title>
   
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body, html {
-      width: 100%; height: 100%;
-      background-color: #000;
-      font-family: system-ui, -apple-system, sans-serif;
-      overflow: hidden; color: #fff;
-    }
-
-    .app-feed {
-      width: 100%; height: calc(100vh - 56px);
-      overflow-y: scroll; scroll-snap-type: y mandatory;
-      scrollbar-width: none;
-    }
+    body, html { width: 100%; height: 100%; background-color: #000; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; color: #fff; }
+    .app-feed { width: 100%; height: calc(100vh - 56px); overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
     .app-feed::-webkit-scrollbar { display: none; }
-
-    .video-card {
-      width: 100%; height: 100%;
-      scroll-snap-align: start;
-      position: relative; background: #111;
-      display: flex; align-items: center; justify-content: center;
-    }
-
+    .video-card { width: 100%; height: 100%; scroll-snap-align: start; position: relative; background: #111; display: flex; align-items: center; justify-content: center; }
     video { width: 100%; height: 100%; object-fit: cover; }
-
-    .top-header {
-      position: absolute; top: 0; left: 0; right: 0;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 14px 16px; z-index: 10;
-      background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
-    }
-    .coin-badge {
-      background: rgba(254, 44, 85, 0.2);
-      border: 1px solid #fe2c55;
-      padding: 6px 12px; border-radius: 20px;
-      font-size: 13px; font-weight: bold; color: #ffd700;
-      display: flex; align-items: center; gap: 6px; cursor: pointer;
-    }
-
-    .action-bar {
-      position: absolute; right: 12px; bottom: 80px;
-      display: flex; flex-direction: column; align-items: center;
-      gap: 16px; z-index: 10;
-    }
-    .action-btn {
-      display: flex; flex-direction: column; align-items: center;
-      color: #fff; font-size: 24px; cursor: pointer;
-      text-shadow: 0 2px 5px rgba(0,0,0,0.6);
-    }
+    .top-header { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; z-index: 10; background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%); }
+    .coin-badge { background: rgba(254, 44, 85, 0.2); border: 1px solid #fe2c55; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; color: #ffd700; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .action-bar { position: absolute; right: 12px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 16px; z-index: 10; }
+    .action-btn { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 24px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.6); }
     .action-btn span { font-size: 11px; margin-top: 3px; font-weight: 600; }
     .action-btn.liked i { color: #fe2c55; }
     .gift-btn { color: #ffd700; }
-
-    .video-info {
-      position: absolute; left: 14px; bottom: 80px; right: 80px;
-      z-index: 10; text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-    }
+    .video-info { position: absolute; left: 14px; bottom: 80px; right: 80px; z-index: 10; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
     .video-info h3 { font-size: 15px; margin-bottom: 4px; }
     .video-info p { font-size: 13px; margin-bottom: 6px; }
-
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
-      background: #000; border-top: 1px solid #222;
-      display: flex; justify-content: space-around; align-items: center; z-index: 20;
-    }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 56px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 20; }
     .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; font-size: 18px; cursor: pointer; }
     .nav-item.active { color: #fff; }
     .nav-item span { font-size: 10px; margin-top: 2px; }
-
-    .custom-modal {
-      position: fixed; bottom: -100%; left: 0; right: 0;
-      background: #181818; border-top-left-radius: 20px; border-top-right-radius: 20px;
-      z-index: 100; transition: bottom 0.3s ease-in-out; padding: 20px;
-      border-top: 1px solid #333; max-height: 80vh; overflow-y: auto;
-    }
+    .custom-modal { position: fixed; bottom: -100%; left: 0; right: 0; background: #181818; border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 100; transition: bottom 0.3s ease-in-out; padding: 20px; border-top: 1px solid #333; max-height: 80vh; overflow-y: auto; }
     .custom-modal.open { bottom: 0; }
     .modal-title { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold; margin-bottom: 16px; border-bottom: 1px solid #2a2a2a; padding-bottom: 10px; }
-
     .gift-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
     .gift-card { background: #242424; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid #333; cursor: pointer; }
     .gift-card:active { border-color: #fe2c55; background: #2d1e24; }
     .gift-card i { font-size: 28px; margin-bottom: 6px; color: #ffd700; }
-
     .package-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
     .package-item { background: #242424; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; cursor: pointer; }
     .package-item:active { border-color: #00f2fe; }
-
     .pay-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 15px; margin-top: 8px; cursor: pointer; }
     .telebirr-btn { background: #00a8ff; color: #fff; }
     .cbe-btn { background: #8e44ad; color: #fff; }
@@ -106,88 +47,60 @@
 </head>
 <body>
 
-  <!-- Top Bar -->
   <div class="top-header">
     <div style="font-weight:bold; font-size:18px; color:#fe2c55;">TOPTIK</div>
     <div class="coin-badge" onclick="openWalletModal()">
       <i class="fa-solid fa-coins"></i>
-      <span id="userCoinBalance">0</span> Coins (Bitadhu)
+      <span id="userCoinBalance">0</span> Coins
     </div>
   </div>
 
-  <!-- Video Feed -->
   <div class="app-feed" id="videoFeed"></div>
 
-  <!-- Wallet Modal -->
   <div class="custom-modal" id="walletModal">
     <div class="modal-title">
       <span>💰 Koyinii Bitadhu (Telebirr / CBE)</span>
       <i class="fa-solid fa-xmark" onclick="closeModal('walletModal')"></i>
     </div>
-
     <div style="background:#222; padding:12px; border-radius:10px; margin-bottom:14px; text-align:center;">
       <p style="font-size:12px; color:#aaa;">Baalaansii Koyinii Keeti:</p>
       <h2 style="color:#ffd700; font-size:26px;" id="modalCoinBalance">0 Coins</h2>
     </div>
 
     <div class="package-grid">
-      <div class="package-item" onclick="selectPackage(100, 10)">
-        <div><strong>100 Coins</strong></div>
-        <div style="color:#00f2fe; font-weight:bold;">10 ETB</div>
-      </div>
-      <div class="package-item" onclick="selectPackage(500, 50)">
-        <div><strong>500 Coins</strong> 🔥</div>
-        <div style="color:#00f2fe; font-weight:bold;">50 ETB</div>
-      </div>
-      <div class="package-item" onclick="selectPackage(1000, 100)">
-        <div><strong>1000 Coins</strong> 👑</div>
-        <div style="color:#00f2fe; font-weight:bold;">100 ETB</div>
-      </div>
+      <div class="package-item" onclick="selectPackage(100, 10)"><div><strong>100 Coins</strong></div><div style="color:#00f2fe; font-weight:bold;">10 ETB</div></div>
+      <div class="package-item" onclick="selectPackage(500, 50)"><div><strong>500 Coins</strong> 🔥</div><div style="color:#00f2fe; font-weight:bold;">50 ETB</div></div>
+      <div class="package-item" onclick="selectPackage(1000, 100)"><div><strong>1000 Coins</strong> 👑</div><div style="color:#00f2fe; font-weight:bold;">100 ETB</div></div>
     </div>
 
     <div id="paymentArea" style="display:none; background:#1f1f1f; padding:14px; border-radius:10px; border:1px solid #444;">
       <p id="selectedPkgText" style="font-size:13px; font-weight:bold; color:#ffd700; margin-bottom:10px;"></p>
-      <p style="font-size:12px; color:#aaa; margin-bottom:8px;">Kaffaltii Telebirr / CBE Birr irratti ergitanii Ref/Number galchaa:</p>
-      <input type="text" id="txRefInput" placeholder="Transaction Ref Number..." style="width:100%; padding:10px; background:#2c2c2c; border:1px solid #555; color:#fff; border-radius:8px; margin-bottom:10px;">
-      <button class="pay-btn telebirr-btn" onclick="submitPayment('Telebirr')">Telebirr'n Mirkaneessi</button>
-      <button class="pay-btn cbe-btn" onclick="submitPayment('CBE Birr')">CBE Birr'n Mirkaneessi</button>
+      <p style="font-size:12px; color:#aaa; margin-bottom:8px;">Kaffaltii ergitanii Transaction Ref/Number galchaa (Admin irraa mirkanaa'a):</p>
+      <input type="text" id="txRefInput" placeholder="Txn Ref Number..." style="width:100%; padding:10px; background:#2c2c2c; border:1px solid #555; color:#fff; border-radius:8px; margin-bottom:10px;">
+      <button class="pay-btn telebirr-btn" onclick="submitPayment('Telebirr')">Telebirr'n Ergi</button>
+      <button class="pay-btn cbe-btn" onclick="submitPayment('CBE Birr')">CBE Birr'n Ergi</button>
     </div>
   </div>
 
-  <!-- Send Gift Modal -->
   <div class="custom-modal" id="giftModal">
     <div class="modal-title">
-      <span>🎁 Kennaa / Gift Ergi</span>
+      <span>🎁 Kennaa Ergi</span>
       <i class="fa-solid fa-xmark" onclick="closeModal('giftModal')"></i>
     </div>
-
     <div class="gift-grid">
-      <div class="gift-card" onclick="sendGift('🌹 Rose', 5)">
-        <i class="fa-solid fa-rose"></i>
-        <div style="font-size:12px; font-weight:bold;">Rose</div>
-        <div style="font-size:11px; color:#ffd700;">5 Coins</div>
-      </div>
-      <div class="gift-card" onclick="sendGift('☕ Buna', 20)">
-        <i class="fa-solid fa-mug-hot"></i>
-        <div style="font-size:12px; font-weight:bold;">Buna</div>
-        <div style="font-size:11px; color:#ffd700;">20 Coins</div>
-      </div>
-      <div class="gift-card" onclick="sendGift('👑 Crown', 100)">
-        <i class="fa-solid fa-crown"></i>
-        <div style="font-size:12px; font-weight:bold;">Crown</div>
-        <div style="font-size:11px; color:#ffd700;">100 Coins</div>
-      </div>
+      <div class="gift-card" onclick="sendGift('🌹 Rose', 5)"><i class="fa-solid fa-rose"></i><div style="font-size:12px; font-weight:bold;">Rose</div><div style="font-size:11px; color:#ffd700;">5 Coins</div></div>
+      <div class="gift-card" onclick="sendGift('☕ Buna', 20)"><i class="fa-solid fa-mug-hot"></i><div style="font-size:12px; font-weight:bold;">Buna</div><div style="font-size:11px; color:#ffd700;">20 Coins</div></div>
+      <div class="gift-card" onclick="sendGift('👑 Crown', 100)"><i class="fa-solid fa-crown"></i><div style="font-size:12px; font-weight:bold;">Crown</div><div style="font-size:11px; color:#ffd700;">100 Coins</div></div>
     </div>
   </div>
 
-  <!-- Upload Modal -->
   <div class="custom-modal" id="uploadModal">
     <div class="modal-title">
-      <span>✨ Vidiyoo Fe'i (Upload)</span>
+      <span>✨ Vidiyoo Upload Gochuu</span>
       <i class="fa-solid fa-xmark" onclick="closeModal('uploadModal')"></i>
     </div>
     <div style="margin-bottom:12px;">
-      <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">Vidiyoo Filadhu:</label>
+      <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">Vidiyoo Filadhu (Max 50MB):</label>
       <input type="file" id="videoFile" accept="video/*" style="width:100%; padding:10px; background:#2c2c2c; color:#fff; border-radius:8px;">
     </div>
     <div style="margin-bottom:12px;">
@@ -198,7 +111,6 @@
     <div id="uploadStatus" style="margin-top:10px; text-align:center; font-size:13px; color:#fe2c55;"></div>
   </div>
 
-  <!-- Bottom Nav -->
   <div class="bottom-nav">
     <div class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></div>
     <div class="nav-item" onclick="openWalletModal()"><i class="fa-solid fa-wallet"></i><span>Wallet</span></div>
@@ -215,7 +127,7 @@
   const CLOUD_NAME = "zkyyos4t";
   const UPLOAD_PRESET = "ml_default";
 
-  let myCoins = parseInt(localStorage.getItem('toptik_coins')) || 100;
+  let myCoins = parseInt(localStorage.getItem('toptik_coins')) || 0;
   let activeVideoId = null;
   let selectedCoins = 0;
   let selectedEtb = 0;
@@ -229,11 +141,7 @@
   function openWalletModal() { openModal('walletModal'); }
   function openModal(id) { document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-  function openGiftModal(vidId) {
-    activeVideoId = vidId;
-    openModal('giftModal');
-  }
+  function openGiftModal(vidId) { activeVideoId = vidId; openModal('giftModal'); }
 
   function selectPackage(coins, etb) {
     selectedCoins = coins;
@@ -244,7 +152,7 @@
 
   async function submitPayment(method) {
     const ref = document.getElementById('txRefInput').value.trim();
-    if (!ref) return alert("Mee dursa Transaction Reference galchi!");
+    if (!ref) return alert("Mee Transaction Ref Number galchi!");
 
     await db.collection("payments").add({
       method: method,
@@ -255,10 +163,7 @@
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    myCoins += selectedCoins;
-    updateCoinUI();
-
-    alert(`🎉 Milkaa'ina: Koyiniin ${selectedCoins} Herrega keetti dabalameera!`);
+    alert("📩 Gaaffiin kaffaltii keessanii mirkanaa'uuf ergameera! Erga mirkanaa'ee booda koyiniin ni dabalama.");
     document.getElementById('txRefInput').value = '';
     document.getElementById('paymentArea').style.display = 'none';
     closeModal('walletModal');
@@ -266,7 +171,7 @@
 
   async function sendGift(giftName, coinCost) {
     if (myCoins < coinCost) {
-      alert("⚠️ Koyinii gahaa hin qabdu! Mee Telebirr/CBE Birr'n Koyinii bitadhu.");
+      alert("⚠️ Koyinii gahaa hin qabdu!");
       closeModal('giftModal');
       openWalletModal();
       return;
@@ -275,23 +180,25 @@
     myCoins -= coinCost;
     updateCoinUI();
 
-    alert(`🎁 ${giftName} (${coinCost} Coins) ergameera!`);
-
     if (activeVideoId) {
       await db.collection("videos").doc(activeVideoId).update({
         receivedCoins: firebase.firestore.FieldValue.increment(coinCost)
       });
     }
 
+    alert(`🎁 ${giftName} ergameera!`);
     closeModal('giftModal');
   }
 
   async function handleUpload() {
-    const file = document.getElementById('videoFile').files[0];
+    const fileInput = document.getElementById('videoFile');
+    const file = fileInput.files[0];
     const caption = document.getElementById('videoCaption').value;
     const status = document.getElementById('uploadStatus');
 
     if (!file) { status.innerText = "Mee vidiyoo filadhu!"; return; }
+    if (file.size > 50 * 1024 * 1024) { status.innerText = "❌ Saayiziin vidiyoo 50MB caaluu hin qabu!"; return; }
+
     status.innerText = "⏳ Fe'amaa jira...";
 
     try {
@@ -299,9 +206,7 @@
       formData.append("file", file);
       formData.append("upload_preset", UPLOAD_PRESET);
 
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
-        method: "POST", body: formData
-      });
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, { method: "POST", body: formData });
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error ? data.error.message : "Upload failed");
@@ -310,15 +215,30 @@
         videoUrl: data.secure_url,
         caption: caption,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        likes: 0
+        likes: 0,
+        receivedCoins: 0
       });
 
-      status.innerText = "🎉 Maxxanfameera!";
+      status.innerText = "🎉 Vidiyoon maxxanfameera!";
       setTimeout(() => { closeModal('uploadModal'); loadVideos(); }, 1000);
     } catch (e) {
       status.innerText = "❌ Error: " + e.message;
     }
   }
+
+  // IntersectionObserver for Smooth Auto-play on Scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target.querySelector('video');
+      if (video) {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      }
+    });
+  }, { threshold: 0.6 });
 
   async function loadVideos() {
     const feed = document.getElementById('videoFeed');
@@ -338,35 +258,20 @@
         const card = document.createElement('div');
         card.className = 'video-card';
         card.innerHTML = `
-          <video src="${data.videoUrl}" loop onclick="this.paused?this.play():this.pause()"></video>
-
+          <video src="${data.videoUrl}" loop muted playsinline onclick="this.muted=!this.muted; this.paused?this.play():null;"></video>
           <div class="action-bar">
-            <div class="action-btn gift-btn" onclick="openGiftModal('${id}')">
-              <i class="fa-solid fa-gift"></i>
-              <span>Gift</span>
-            </div>
-
-            <div class="action-btn" onclick="this.classList.toggle('liked')">
-              <i class="fa-solid fa-heart"></i>
-              <span>${data.likes || 0}</span>
-            </div>
-
-            <div class="action-btn">
-              <i class="fa-solid fa-coins" style="color:#ffd700;"></i>
-              <span>${data.receivedCoins || 0}</span>
-            </div>
+            <div class="action-btn gift-btn" onclick="openGiftModal('${id}')"><i class="fa-solid fa-gift"></i><span>Gift</span></div>
+            <div class="action-btn" onclick="this.classList.toggle('liked')"><i class="fa-solid fa-heart"></i><span>${data.likes || 0}</span></div>
+            <div class="action-btn"><i class="fa-solid fa-coins" style="color:#ffd700;"></i><span>${data.receivedCoins || 0}</span></div>
           </div>
-
           <div class="video-info">
-            <h3>@toptik_creator</h3>
-            <p>${data.caption || 'TOPTIK Video'}</p>
+            <h3>@toptik_user</h3>
+            <p>${data.caption || ''}</p>
           </div>
         `;
         feed.appendChild(card);
+        observer.observe(card);
       });
-
-      const firstVid = feed.querySelector('video');
-      if (firstVid) firstVid.play();
     } catch (e) { console.error(e); }
   }
 
