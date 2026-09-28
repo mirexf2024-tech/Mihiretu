@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOPTIK - Vidiyoo Fe'i</title>
-  <!-- Firebase App & Firestore SDK -->
+  <title>TOPTIK - AI Video Editor & Upload</title>
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <style>
@@ -24,19 +24,18 @@
       border-radius: 16px;
       padding: 24px;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-      text-align: center;
       border: 1px solid #333;
     }
     h2 {
       font-size: 22px;
       margin-bottom: 20px;
       color: #fe2c55;
+      text-align: center;
     }
     .form-group {
       margin-bottom: 16px;
-      text-align: left;
     }
     label {
       display: block;
@@ -44,7 +43,7 @@
       color: #aaa;
       margin-bottom: 6px;
     }
-    input[type="file"], input[type="text"] {
+    input[type="file"], input[type="text"], select {
       width: 100%;
       padding: 12px;
       background: #2c2c2c;
@@ -52,6 +51,25 @@
       border-radius: 8px;
       color: #fff;
       font-size: 14px;
+    }
+    .ai-options {
+      background: #252525;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px dashed #fe2c55;
+      margin-bottom: 16px;
+    }
+    .ai-options h4 {
+      font-size: 14px;
+      color: #fe2c55;
+      margin-bottom: 8px;
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
     }
     button {
       width: 100%;
@@ -63,7 +81,6 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 10px;
     }
     button:disabled {
       background: #555;
@@ -76,6 +93,7 @@
       font-size: 14px;
       display: none;
       word-break: break-word;
+      text-align: center;
     }
     .info { background: #1a3a5c; color: #85c1e9; }
     .success { background: #1e4620; color: #82e0aa; }
@@ -85,7 +103,7 @@
 <body>
 
 <div class="upload-card">
-  <h2>TOPTIK - Vidiyoo Fe'i</h2>
+  <h2>✨ TOPTIK AI Video Editor</h2>
 
   <div class="form-group">
     <label for="videoFile">Vidiyoo Filadhu:</label>
@@ -94,30 +112,47 @@
 
   <div class="form-group">
     <label for="videoCaption">Barreeffama (Caption):</label>
-    <input type="text" id="videoCaption" placeholder="Mataduree ykn barreeffama galchi...">
+    <input type="text" id="videoCaption" placeholder="Mataduree galchi...">
   </div>
 
-  <button type="button" id="uploadBtn">Post Video</button>
+  <!-- AI Editing Tools Options -->
+  <div class="ai-options">
+    <h4>🤖 Filannoowwan AI Video Editing:</h4>
+    
+    <div class="checkbox-group">
+      <input type="checkbox" id="aiCrop" checked>
+      <label for="aiCrop">AI Smart Crop (Bifa TikTok 9:16)</label>
+    </div>
+
+    <div class="checkbox-group">
+      <input type="checkbox" id="aiOptimize" checked>
+      <label for="aiOptimize">AI Quality & Fast Loading Optimizer</label>
+    </div>
+
+    <div class="form-group" style="margin-top: 8px; margin-bottom: 0;">
+      <label for="aiFilter">AI Video Filter Addaa:</label>
+      <select id="aiFilter">
+        <option value="none">Normal (Filter Malee)</option>
+        <option value="e_vignette:30">AI Vignette (Shadow Edges)</option>
+        <option value="e_art:zorro">AI Art Filter</option>
+        <option value="e_grayscale">Black & White</option>
+      </select>
+    </div>
+  </div>
+
+  <button type="button" id="uploadBtn">AI'n Sirreessi & Post Godhi</button>
 
   <div id="status"></div>
 </div>
 
 <script>
-  // Firebase Configuration
-  const firebaseConfig = {
-    projectId: "toptik-47f84"
-  };
-
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
+  const firebaseConfig = { projectId: "toptik-47f84" };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // Cloudinary Settings
   const CLOUD_NAME = "zkyyos4t";
   const UPLOAD_PRESET = "ml_default";
 
-  // Elements
   const uploadBtn = document.getElementById('uploadBtn');
   const videoFileInput = document.getElementById('videoFile');
   const captionInput = document.getElementById('videoCaption');
@@ -127,6 +162,33 @@
     statusDiv.style.display = 'block';
     statusDiv.className = type;
     statusDiv.innerText = message;
+  }
+
+  // AI Transformation URL generator
+  function applyAITransformations(originalUrl) {
+    const aiCrop = document.getElementById('aiCrop').checked;
+    const aiOptimize = document.getElementById('aiOptimize').checked;
+    const aiFilter = document.getElementById('aiFilter').value;
+
+    let transformations = [];
+
+    if (aiCrop) {
+      // AI Object/Face Detection Smart Crop (9:16 Vertical)
+      transformations.push("c_fill,g_auto,w_720,h_1280");
+    }
+    if (aiOptimize) {
+      // Auto Format & Fast Quality Optimization
+      transformations.push("f_auto,q_auto");
+    }
+    if (aiFilter !== "none") {
+      transformations.push(aiFilter);
+    }
+
+    if (transformations.length === 0) return originalUrl;
+
+    const transformString = transformations.join(",");
+    // URL Cloudinary keessa galchuu (/upload/ AFTER)
+    return originalUrl.replace("/upload/", `/upload/${transformString}/`);
   }
 
   async function handleUpload() {
@@ -139,7 +201,7 @@
     }
 
     uploadBtn.disabled = true;
-    showStatus("⏳ Vidiyoon Cloudinary irratti fe'amaa jira, mee eegi...", "info");
+    showStatus("⏳ 1/2 Vidiyoon Cloudinary'tti fe'amaa jira...", "info");
 
     try {
       const formData = new FormData();
@@ -154,27 +216,30 @@
       const data = await response.json();
 
       if (!response.ok || !data.secure_url) {
-        const errMsg = data.error ? data.error.message : "Upload failed";
-        throw new Error("Cloudinary Error: " + errMsg);
+        throw new Error(data.error ? data.error.message : "Upload failed");
       }
 
-      showStatus("✅ Vidiyoon fe'ameera! Database irratti save gochaa jira...", "info");
+      showStatus("🤖 2/2 AI'n vidiyoo gulaalaa fi Database irratti save gochaa jira...", "info");
+
+      // Apply AI Video Editing transformations to URL
+      const aiEditedVideoUrl = applyAITransformations(data.secure_url);
 
       await db.collection("videos").add({
-        videoUrl: data.secure_url,
+        videoUrl: aiEditedVideoUrl,
+        rawUrl: data.secure_url,
         caption: caption,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         likes: 0
       });
 
-      showStatus("🎉 Milkaa'ina: Vidiyoon kee post ta'eera!", "success");
+      showStatus("🎉 Milkaa'ina: Vidiyoon AI'n gulaalamee post ta'eera!", "success");
       
       videoFileInput.value = "";
       captionInput.value = "";
 
     } catch (err) {
       console.error(err);
-      showStatus("❌ " + err.message, "error");
+      showStatus("❌ Error: " + err.message, "error");
     } finally {
       uploadBtn.disabled = false;
     }
